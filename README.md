@@ -333,6 +333,42 @@ Write this code:
 
 And then add this piece of code `{% include 'template' %}` change template for the filename where your nav_bar or any other html code was written
 
+## Rendering context in Django
+
+We make a dictionary of the template context that we want to pass and we pass that
+
+In page/views.py:
+```
+def about_view(request, *args, **kwargs):
+    my_context = {
+        "my_text": "This is about us",
+        "my_number": 123
+    }
+    return render(request, 'about.html', my_context)
+```
+My context is a dictionary where we can keep any data that we want to pass to our templates
+
+In templates/about.html
+```
+{% extends 'base.html' %}
+
+{% block about_page %}
+<h1>About page</h1>
+
+<p>
+
+{{ my_text }},
+{{ my_number }}
+
+</p>
+
+{% endblock %}
+```
+
+We write {{  }}. In them we put the keys of our context(dictionary that we passed in our page/views.py function)
+
+
+
 
 ## ERRORS
 
