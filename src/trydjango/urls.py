@@ -19,10 +19,12 @@ from django.urls import path
 from pages.views import home_view
 from pages.views import products_view
 from pages.views import about_view
+from pages.views import shoplist_view
 
 urlpatterns = [
     path('', home_view, name='home'),
     path('products/', products_view),
     path('admin/', admin.site.urls),
-    path('about/', about_view)
+    path('about/', about_view),
+    path('shoplist/', shoplist_view)
 ]

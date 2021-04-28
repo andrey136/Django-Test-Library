@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Coding for entrepreneurs is Doing Try Django</title>
+  <!-- <link rel="stylesheet" href="/Users/andreimardash/pro/trydjango/src/templates/styles.css"> -->
 </head>
 <style>
     body, div, h1, h2{
@@ -46,13 +47,16 @@
 <body>
     {% include 'navbar.html' %}
     <div id="main_content">
-        {% block home_page %}
+    {% block home_page %}
     {% endblock %}
 
     {% block product_page %}
     {% endblock %}
 
     {% block about_page %}
+    {% endblock %}
+
+    {% block shop_list %}
     {% endblock %}
 
     </div>
