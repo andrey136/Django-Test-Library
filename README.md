@@ -337,7 +337,7 @@ And then add this piece of code `{% include 'template' %}` change template for t
 
 We make a dictionary of the template context that we want to pass and we pass that
 
-In page/views.py:
+In pages/views.py:
 ```
 def about_view(request, *args, **kwargs):
     my_context = {
@@ -367,6 +367,70 @@ In templates/about.html
 
 We write {{  }}. In them we put the keys of our context(dictionary that we passed in our page/views.py function)
 
+## For Loop in a Template
+
+Write in templates/about.html:
+
+```
+{% extends 'base.html' %}
+
+{% block about_page %}
+<h1>About page</h1>
+
+<ul>
+{% for my_sub_item in my_list %}
+<li>{{ forloop.counter }}-{{ my_sub_item }}</li>
+{% endfor %}  
+</ul>
+
+{% endblock %}
+```
+
+* {%%} - as always we put any django code in these;
+* my_sub_item - arbitrary name
+* in - python operator
+* my_list - the key of the context obj we passes to our template from pages/views
+* {{ my_sub_item }} - in them we write the arbitrary name we came up with
+* {{ forloop.counter }} - return index of the elemnt starting with one
+
+## Using Conditions in a Template
+
+Write in templates/about.html:
+
+```
+{% extends 'base.html' %}
+
+{% block about_page %}
+<h1>About page</h1>
+
+<ul>
+{% for abc in my_list %}
+
+{% if abc == 312 %}
+<li>{{ forloop.counter }}-{{ abc|add:22 }}</li>
+{% elif abc == "kds" %}
+<li>This is not the network</li>
+{% else %}
+<li>{{ forloop.counter }}-{{ abc }}</li>
+{% endif %}
+
+{% endfor %}  
+</ul>
+
+{% endblock %}
+```
+
+Syntax Conditions:
+
+```
+{% if bool_expression %}
+...
+{% elif bool_expression %}
+...
+{% else %}
+...
+{% endif %}
+``` 
 
 
 
