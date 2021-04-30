@@ -432,6 +432,40 @@ Syntax Conditions:
 {% endif %}
 ``` 
 
+## Template Tags and Filters
+
+```
+{% extends 'base.html' %}
+
+{% block shop_list %}
+
+<h1>This is a shop list !!!</h1>
+<h2>{{title|capfirst|upper}}</h2>
+
+{{ my_html|safe }}
+
+<ul>{% for ind in kittens %}
+    {% if ind == "Rafael" %}
+    <li>HEEEY!!! It's the best dog's name! <div class="emphasize_text">{{ind}}</div></li>
+    {% else %}
+    <li>{{ ind|add:" nice touch :)"|capfirst }}</li>
+    {% endif %}
+    {% endfor %}
+</ul>
+
+
+{% endblock shop_list %}
+```
+
+Here `{{ my_html|safe }}` we passed a variable `my_html` which contains html code in ""
+
+|safe filter makes it html code, not a string in our template
+
+Like any filter you can use them with `|` (pipe) sign
+
+All of them are in documentation. Here's just a brief example what you can do with them.
+
+
 
 
 ## ERRORS
