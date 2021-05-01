@@ -43,6 +43,11 @@
         width: 960px;
         margin: 0 auto;
     }
+    .emphasize_text{
+        display: inline-block;
+        color: rgb(141, 89, 55);
+        font-size: 2em;
+    }
 </style>
 <body>
     {% include 'navbar.html' %}
@@ -57,6 +62,9 @@
     {% endblock %}
 
     {% block shop_list %}
+    {% endblock %}
+
+    {% block content %}
     {% endblock %}
 
     </div>
