@@ -529,7 +529,89 @@ add this code to detail.html:
 {% endblock %}
 ```
 
+## How Django Templates Load with Apps
 
+* Create a folder `/templates/products' in products app
+* Crete a new template `product_detail.html` in that folder
+```
+# /src/products/templates/products/product_detail.html
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>In App template: {{object.title}}</h1>
+<p> {% if object.description is not None and object.description != '' %}{{ object.description }}{% else %}Description Coming Soon{% endif %}</p>
+{% endblock %}
+```
+* Don't forget to add {% block content %}{% endblock %} in the `base.html` file(path: /src/templates/base.html)
+
+>> Remember that if you're doing a solo project or if you're having a team, you need to keep app templates in app folder and not in /src/templates cause otherwise it'll be confusing
+
+## Django Models Forms
+Create in any app(here it is products app) a new file `forms.py`
+
+Paste this code:
+```
+# /src/products/forms.py
+from django import forms
+
+from .models import Product
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = [
+            'title',
+            'description',
+            'price'
+        ]
+```
+When choosing a name for a class there are several preferable names for that:
+* ProductModelForm
+* ProductForm
+* ProductCreateForm
+
+Then render this out in the products/views.py
+
+Create a template in /src/products/templates/products/product_create.html
+Paste this code:
+```
+{% extends 'base.html' %}
+
+{% block content %}
+<form method='POST'> {% csrf_token %}
+    {{ form.as_p }}
+    <input type='submit' value='Save' />
+</form>
+{% endblock %}
+```
+
+Then create a new product_create_view() func in /products/views.py
+```
+def product_create_view(request):
+    form = ProductForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        form = ProductForm()
+
+    context = {
+        "form": form
+    }
+
+    return render(request, 'products/product_create.html', context)
+```
+
+Then bring it in into our urls /src/trydjango/ursl.py
+
+```
+...
+from products.views import product_create_view
+
+urlpatterns = [
+    path('', home_view, name='home'),
+    ...
+    path('create/', product_create_view)
+]
+```
 
 ## ERRORS
 
@@ -594,3 +676,27 @@ True
 python manage.py makemigrations
 python manage.py migrate
 ```
+
+### TemplateDoesNotExist at /products/
+
+Look at these lines:
+
+```
+Template-loader postmortem
+
+Django tried loading these templates, in this order:
+
+Using engine django:
+django.template.loaders.filesystem.Loader: /Users/andreimardash/pro/trydjango/src/templates/products/produc_detail.html (Source does not exist)
+
+django.template.loaders.app_directories.Loader: /usr/local/lib/python3.7/site-packages/django/contrib/admin/templates/products/produc_detail.html (Source does not exist)
+
+django.template.loaders.app_directories.Loader: /usr/local/lib/python3.7/site-packages/django/contrib/auth/templates/products/produc_detail.html (Source does not exist)
+
+django.template.loaders.app_directories.Loader: /Users/andreimardash/pro/trydjango/src/products/templates/products/produc_detail.html (Source does not exist)
+```
+
+### Solution
+
+Check the path you used in product/views.py with the actual file you want to render
+They must be different
