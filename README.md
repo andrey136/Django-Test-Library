@@ -466,6 +466,69 @@ Like any filter you can use them with `|` (pipe) sign
 All of them are in documentation. Here's just a brief example what you can do with them.
 
 
+## Render Data from the Data Base with a Model
+
+You can get your obj in django shell
+
+Run `python3 manage.py shell` in your command line
+
+Run these commands:
+```
+>>> from products.models import Product
+>>> Product.objects.get(id=1)
+<Product: Product object (1)>
+>>> obj = Product.objects.get(id=1)
+>>> dir(obj)
+```
+
+`dir(obj)` method will return all the attributes and methods this obj has
+
+Now exit the shell with `exit()` command and create in products/views.py a view function
+That's where we will render our data
+
+In products/views write:
+```
+from django.shortcuts import render
+
+from .models import Product
+
+# Create your views here.
+def product_detail_view(request):
+    obj = Product.objects.get(id=1)
+    # context = {
+    #     'title': obj.title,
+    #     'description': obj.description
+    # }
+    context = {
+        "object": obj
+    }
+
+    return render(request, "product/detail.html", context)
+
+```
+
+add this code to trydjango/urls.py:
+```
+from products/models import Product
+
+urlpatterns = [
+    path('', home_view, name='home'),
+    ...
+    path('product/', product_detail_view)
+]
+```
+create a new folder `product` in templates folder and create a `detail.html` file
+
+add this code to detail.html:
+```
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{object.title}}</h1>
+<p> {% if object.description is not None and object.description != '' %}{{ object.description }}{% else %}Description Coming Soon{% endif %}</p>
+{% endblock %}
+```
+
 
 
 ## ERRORS
