@@ -31,4 +31,9 @@ def about_view(request, *args, **kwargs):
     return render(request, 'about.html', my_context)
 
 def shoplist_view(request, *args, **kwargs):
-    return render(request, 'shopList.html', {})
+    my_context = {
+        "title": "animals",
+        "kittens":["JB","Jess","Coco","Rafael"],
+        "my_html": "<h1>Hello World</h1>"
+    }
+    return render(request, 'shopList.html', my_context)
