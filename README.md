@@ -613,6 +613,56 @@ urlpatterns = [
 ]
 ```
 
+## Raw HTML Forms
+
+Get rid of django forms:
+
+```
+# /products/templates/products/product_create.html
+{% extends 'base.html' %}
+
+{% block content %}
+<form method='POST'> 
+    {% csrf_token %} --- delete
+    {{ form.as_p }}  --- delete
+    <input type='submit' value='Save' />
+</form>
+{% endblock %}
+```
+
+Action will send the form to any url you put there
+
+Paste this code to /products/views.py:
+```
+def product_create_view(request):
+    if request.method == "POST":
+        my_new_title = request.POST.get('title')
+        print(my_new_title)
+        # Product.objects.create(title=my_new_title)
+    context = {}
+    return render(request, 'products/product_create.html', context)
+```
+Also the final product_create.html file look:
+
+```
+{% extends 'base.html' %}
+
+{% block content %}
+<form action="." method='POST'> 
+    {% csrf_token %}
+    <input type="text" name="title" placeholder="Your Title" />
+    <input type='submit' value='Save' />
+</form>
+{% endblock %}
+```
+
+It's a bad method of saving data because we're not validating if this good data, we're not cleaning this data. So we need to make sure that we do that
+
+## Pure Django Form
+
+
+
+
 ## ERRORS
 
 ### OperationalError at /admin/products/product/add/
