@@ -544,7 +544,7 @@ add this code to detail.html:
 ```
 * Don't forget to add {% block content %}{% endblock %} in the `base.html` file(path: /src/templates/base.html)
 
->> Remember that if you're doing a solo project or if you're having a team, you need to keep app templates in app folder and not in /src/templates cause otherwise it'll be confusing
+> Remember that if you're doing a solo project or if you're having a team, you need to keep app templates in app folder and not in /src/templates cause otherwise it'll be confusing
 
 ## Django Models Forms
 Create in any app(here it is products app) a new file `forms.py`
@@ -644,7 +644,7 @@ def product_create_view(request):
 ```
 Also the final product_create.html file look:
 
-```
+```buildoutcfg
 {% extends 'base.html' %}
 
 {% block content %}
@@ -660,7 +660,165 @@ It's a bad method of saving data because we're not validating if this good data,
 
 ## Pure Django Form
 
+Go to src/products/forms.py and paste:
+```buildoutcfg
+class ProductRawForm(forms.Form):
+    title       = forms.CharField()
+    description = forms.CharField()
+    price       = forms.DecimalField()
+```
 
+If you try to declare title or description fields to forms.TextField  it's not going to work
+[Check out the documentation](https://docs.djangoproject.com/en/3.2/ref/forms/fields/)
+
+Then import this form in /src/products/views.py
+```buildoutcfg
+from .forms import ProductForm, ProductRawForm
+
+# ... Other code
+
+def product_create_view(request):
+    my_form = ProductRawForm()
+    context = {
+        "form": my_form
+    }
+    return render(request, 'products/product_create.html', context)
+```
+
+Paste this code to /src/products/templates/products/create_product.html:
+```buildoutcfg
+{% extends 'base.html' %}
+
+{% block content %}
+<form action="." method='POST'> 
+    {% csrf_token %}
+    {{ form.as_p }} <!--as_p just renders it out in <p></p> tags -->
+    <!--You could as well use forms.as_ul to render it as unordered list -->
+    <input type='submit' value='Save' />
+</form>
+{% endblock %}
+```
+
+The final look of /src/products/views.py:
+```buildoutcfg
+def product_create_view(request):
+    my_form = RawProductForm()
+    if request.method == "POST":
+        my_form = RawProductForm(request.POST)
+        if my_form.is_valid():
+            # now the data is good
+            print(my_form.cleaned_data)
+            Product.objects.create(**my_form.cleaned_data)
+        else:
+            print(my_form.errors)
+    context = {
+        "form": my_form
+    }
+    return render(request, 'products/product_create.html', context)
+```
+##Form Widgets
+
+Pate this code in /src/products/forms.py:
+```buildoutcfg
+class RawProductForm(forms.Form):
+    title       = forms.CharField(required=True, label='Too Too Too')
+    description = forms.CharField(required=False, widget=forms.Textarea)
+    price       = forms.DecimalField(initial=199.99)
+```
+Check out all the various widgets [here](https://docs.djangoproject.com/en/3.2/ref/forms/widgets/)
+
+The final changes in forms.py:
+```buildoutcfg
+
+class RawProductForm(forms.Form):
+    title       = forms.CharField(required=True, label='', widget=forms.TextInput(attrs={"placeholder": "Your title"}))
+    description = forms.CharField(
+                        required=False,
+                        widget=forms.Textarea(
+                                attrs={
+                                    "placeholder": "Your description",
+                                    "class":"new-class name",
+                                    "id": "my-id-for-text-area",
+                                    "rows": 20,
+                                    "cols": 120
+                                }
+                            )
+                        )
+    price       = forms.DecimalField(initial=199.99)
+```
+
+## Form Validation Methods
+If you want to validate a specific form field before saving it to db first paste 
+this code to views.py  
+```
+def product_create_view(request):
+    form = ProductForm(request.POST or None)
+    if form.is_valid(): # Will check if there are functions like clean_<field_name> function in your forms func
+        form.save() 
+        form = ProductForm()
+
+    context = {
+        "form": form
+    }
+
+    return render(request, 'products/product_create.html', context)
+```
+In your forms.py paste this after Meta class but not inside of it:
+```buildoutcfg
+    def clean_title(self, *args, **kwargs):
+        title = self.cleaned_data.get("title")
+        if "CFE" in title:
+            return title
+        else:
+            raise forms.ValidationError("This is not a valid title")
+```
+
+Look at the final forms.py file:
+```buildoutcfg
+from django import forms
+
+from .models import Product
+
+class ProductForm( forms.ModelForm):
+    title = forms.CharField(required=True, label='', widget=forms.TextInput(attrs={"placeholder": "Your title"}))
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                "placeholder": "Your description",
+                "class": "new-class name",
+                "id": "my-id-for-text-area",
+                "rows": 20,
+                "cols": 120
+            }
+        )
+    )
+    price = forms.DecimalField(initial=199.99)
+    email = forms.EmailField()
+    class Meta:
+        model = Product
+        fields = [
+            'title',
+            'description',
+            'price'
+        ]
+
+    def clean_title(self, *args, **kwargs):
+        title = self.cleaned_data.get("title")
+        if "CFE" not in title:
+            raise forms.ValidationError("This is not a valid title")
+        if "news" not in title:
+            raise forms.ValidationError("This is not a valid title")
+        return title
+
+    def clean_email(self, *args, **kwargs):
+        email = self.cleaned_data.get("email")
+        if "edu" not in email:
+            raise forms.ValidationError("This is not a valid email")
+        return email
+```
+
+## Initial Values for Forms
 
 
 ## ERRORS
