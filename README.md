@@ -820,6 +820,145 @@ class ProductForm( forms.ModelForm):
 
 ## Initial Values for Forms
 
+In views.py example code:
+```buildoutcfg
+def render_initial_data(request):
+    initial_data = {
+        'title': "My this awesome title"
+    }
+    obj = Product.objects.get(id=1)
+    form = ProductForm(request.POST or None, initial=initial_data, instance=obj)
+    if form.is_valid():
+        form.save()
+    context = {
+        "form": form
+    }
+    return render(request, "products/product_create.html", context)
+
+```
+--> `form = ProductForm(request.POST or None, initial=initial_data, instance=obj)`
+
+Here initial attribute defines intial values for the form.py to fill in the form
+
+__Always validate the data before posting it in db__
+```buildoutcfg
+if form.is_valid():
+        form.save()
+```
+
+__Don't forget to add render_initial_data function in urls.py__
+
+## Dynamic URL Routing
+
+Changed product_detail.html. Now it looks like this:
+```
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{object.title}}</h1>
+<p>{{object.description}}</p>
+<p>{{object.price}}</p>
+{% endblock %}
+```
+In views.py dynamic function:
+```buildoutcfg
+def dynamic_lookup_view(request, id):
+    obj = Product.objects.get(id=id)
+    context = {
+        "object": obj
+    }
+    return render(request, 'products/product_detail.html', context)
+```
+In urls.py:
+```buildoutcfg
+urlpatterns = [
+    path('products/<int:id>/', dynamic_lookup_view)
+    ...
+    ]
+```
+It passes a new argument to our view. So our view has request argument by default.
+It passes in a new argument of id, which we declare a name of.
+
+If you change a name of id in url.py, you also need to change it in view
+
+## Handle DoesNotExist
+The long way to handle DoesNotExist exception if writing try/except block:
+
+```buildoutcfg
+from django.http import Http404
+from django.shortcuts import render
+
+from .models import Product
+
+def dynamic_lookup_view(request, id):
+    try:
+        obj = Product.objects.get(id=id)
+    except Product.DoesNotExist:
+        raise Http404
+    context = {
+        "object": obj
+    }
+    return render(request, 'products/product_detail.html', context)
+```
+
+The easier and probably better way to do it is by importing this method:
+```buildoutcfg
+from django.shortcuts import render, get_object_or_404
+
+from .models import Product
+
+def dynamic_lookup_view(request, id):
+    obj = get_object_or_404(Product, id=id)
+    context = {
+        "object": obj
+    }
+    return render(request, 'products/product_detail.html', context)
+
+```
+
+## Delete and Confirm
+
+Created a new template /src/products/templates/products/product_delete:
+```buildoutcfg
+{% extends "base.html" %}
+
+{% block content %}
+
+<form action="." method="POST">{% csrf_token %}
+    <h1>Do you want to delete the product "{{ object.title }}"?</h1>
+    <p><input type="submit" value="Yes" /> <a href="../">Cancel</a></p>
+</form>
+
+{% endblock %}
+```
+
+And views.py :
+```buildoutcfg
+from django.shortcuts import render, get_object_or_404, redirect
+
+from .models import Product
+from .forms import ProductForm, RawProductForm
+
+
+# Create your views here
+
+def product_delete_view(request, id):
+    obj = get_object_or_404(Product, id=id)
+    if request.method == "POST":
+        # confirming delete
+        obj.delete()
+        return redirect('../../')
+    context = {"object": obj}
+    return render(request, "products/product_delete.html", context)
+```
+
+So I ran into a really frustrating error. 
+When I added path to the urls I forgot to put `/` at the end of it and instead of
+`path('products/<int:id>/delete/'` I put `path('products/<int:id>/delete'`. So be aware of it!!!
+
+There's also `redirect` function that basically redirects the user after deleting an object
+
+## View a list of Database Objects
 
 ## ERRORS
 
@@ -908,3 +1047,25 @@ django.template.loaders.app_directories.Loader: /Users/andreimardash/pro/trydjan
 
 Check the path you used in product/views.py with the actual file you want to render
 They must be different
+
+### TypeError at /products/10/ 
+__`dynamic_lookup_view() got an unexpected keyword argument 'id'`__
+
+Our view function just doesn't know what argument `id` is. So all you have to do is just to make sure that
+you're passing the right argument, for example:
+in urls.py
+```buildoutcfg
+urlpatterns = [
+    path('products/<int:id>/', dynamic_lookup_view)
+```
+And in views.py
+```buildoutcfg
+def dynamic_lookup_view(request, my_id):
+    obj = Product.objects.get(id=my_id)
+    context = {
+        "object": obj
+    }
+    return render(request, 'products/product_detail.html', context)
+```
+You need to change `my_id` in dynamic_lookup_view function to `id`
+That'll do
