@@ -960,6 +960,107 @@ There's also `redirect` function that basically redirects the user after deletin
 
 ## View a list of Database Objects
 
+In products/views.py we set queryset variable to our Product.objects.all()
+
+Instead of Product can be any model object that you created in your app/models.py
+
+```buildoutcfg
+def product_list_view(request):
+    queryset = Product.objects.all() # list of objects
+    context = {
+        "object_list": queryset
+    }
+    return render(request, 'products/product_list.html', context)
+```
+
+Created a new template for that – product_list.html:
+```buildoutcfg
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Product List</h1>
+{% for instance in object_list %}
+    <p>{{ instance.id }} - {{ instance.title }}</p>
+{% endfor %}
+
+{% endblock %}
+```
+
+## Dynamic Linking of URLs
+
+Instead of rewriting the dynamic url every time you change the path in views.py you can
+make Dynamic Linking of URLs
+
+Define in your models.py file a new method get_absolute_path and return the string value
+```buildoutcfg
+# models.py
+
+from django.db import models
+
+# Create your models here.
+
+class Product(models.Model): 
+    title = models.CharField(max_length=120) 
+    description = models.TextField(blank=True, null=True) 
+    price = models.DecimalField(decimal_places=2, max_digits=10000)
+    summary = models.TextField(blank=False, null=False)
+    featured = models.BooleanField(default=False)
+
+    def get_absolute_url(self):
+        return f"/products/{self.id}/"
+```
+That's how product_list.html file look like now:
+```
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Product List</h1>
+{% for instance in object_list %}
+    <p>{{ instance.id }} - <a href="{{ instance.get_absolute_url }}">{{ instance.title }}</a></p>
+{% endfor %}
+
+{% endblock %}
+```
+
+## Django URLs Reverse
+
+To transition our get_absolute_url method in models.py to being dynamic itself
+
+For that we need to use function called reverse
+
+```buildoutcfg
+# models.py
+from django.db import models
+from django.urls import reverse
+# Create your models here.
+
+class Product(models.Model): 
+    title = models.CharField(max_length=120) 
+    description = models.TextField(blank=True, null=True) 
+    price = models.DecimalField(decimal_places=2, max_digits=10000)
+    summary = models.TextField(blank=False, null=False)
+    featured = models.BooleanField(default=False)
+
+    def get_absolute_url(self):
+        # return f"/products/{self.id}/"
+        return reverse("product-detail", kwargs={"id": self.id})
+```
+
+We also assign name attribute in urls.py:
+```buildoutcfg
+urlpatterns = [
+    path('products/<int:id>/', dynamic_lookup_view, name="product-detail"),
+    path('products/<int:id>/delete/', product_delete_view, name="porduct-delete"),
+    path('products/', product_list_view, name="product_list")
+]
+```
+Whatever we change our url for, where a function get_absolute_url is used it'll return us the exact url we need
+
+## In App URLs and Namespacing
+
+
+
+
 ## ERRORS
 
 ### OperationalError at /admin/products/product/add/
