@@ -4,22 +4,8 @@ from django.http import HttpResponse
 # Create your views here.
 
 def home_view(request, *args, **kwargs):
-    print(request, args, kwargs)
-    print(request.user)
-    #return HttpResponse("<h1>Hello World!</h1>")
     return render(request, "home.html", {})
 
-def products_view(request, *args, **kwargs):
-    my_context = {
-        "fruits":{
-            0: "apple",
-            1: "orange",
-            2: "mango",
-            3: "kiwi"
-        }
-    }
-
-    return render(request, 'products.html', my_context)
 
 def about_view(request, *args, **kwargs):
     my_context = {
