@@ -1058,8 +1058,105 @@ Whatever we change our url for, where a function get_absolute_url is used it'll 
 
 ## In App URLs and Namespacing
 
+Create urls.py file in products and import all the relative views functions
 
+```buildoutcfg
+# products/urls.py
+from django.contrib import admin
+from django.urls import path
 
+from pages.views import home_view, about_view, shoplist_view
+from products.views import (
+    product_detail_view,
+    product_delete_view,
+    product_list_view,
+    product_update_view,
+    product_create_view,
+)
+
+urlpatterns = [
+    path('products/<int:id>/delete/', product_delete_view, name="product-delete"),
+    path('products/', product_list_view, name="product_list"),
+    path('products/<int:id>/', product_detail_view, name="product-detail"),
+    path('products/create/', product_create_view)
+]
+```
+
+1. Import the include() function: from django.urls import include, path
+2. Add a URL to urlpatterns:  path('products/', include('products.urls'))
+
+```buildoutcfg
+# trydjango/urls.py
+from django.contrib import admin
+from django.urls import include, path
+
+from pages.views import home_view, about_view, shoplist_view
+
+urlpatterns = [
+    path('products/', include('products.urls')),
+    path('', home_view, name='home'),
+    path('admin/', admin.site.urls),
+    path('about/', about_view),
+    path('shoplist/', shoplist_view),
+]
+```
+
+But it's not really going to work the way that we want. In this case we need to get rid of `'products/...'` products
+because it's already being rendered with 'products/' fromm trydjango/urls.py file
+
+```buildoutcfg
+from django.contrib import admin
+from django.urls import path
+
+from pages.views import home_view, about_view, shoplist_view
+from products.views import (
+    product_detail_view,
+    product_delete_view,
+    product_list_view,
+    product_update_view,
+    product_create_view,
+)
+
+app_name = 'products'
+
+urlpatterns = [
+    path('<int:id>/delete/', product_delete_view, name="product-delete"),
+    path('', product_list_view, name="product_list"),
+    path('<int:id>/', product_detail_view, name="product-detail"),
+    path('create/', product_create_view)
+]
+```
+
+As you might see, we also added a new variable `app_name`. Don't get startled.
+It contains the namespace of our app
+
+Then you need to add this line to your code in products/models.py
+```buildoutcfg
+# products/models.py
+from django.db import models
+from django.urls import reverse
+# Create your models here.
+
+class Product(models.Model): 
+    title = models.CharField(max_length=120) 
+    description = models.TextField(blank=True, null=True) 
+    price = models.DecimalField(decimal_places=2, max_digits=10000)
+    summary = models.TextField(blank=False, null=False)
+    featured = models.BooleanField(default=False)
+
+    def get_absolute_url(self):
+        return reverse("products:product-detail", kwargs={"id": self.id})
+```
+
+In a function get_absolute_url instead of a line
+```buildoutcfg
+return reverse("product-detail", kwargs={"id": self.id})
+```
+We return this line
+```buildoutcfg
+return reverse("products:product-detail", kwargs={"id": self.id})
+```
+Because products is the name of our app and spacename
 
 ## ERRORS
 
