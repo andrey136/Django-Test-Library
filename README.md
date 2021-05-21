@@ -61,13 +61,13 @@ django-admin startproject trydjango .
 
 python manage.py runserver
 ```
-### Running our database
+## Running our database
 ```
 python manage.py migrate
 ```
 ## Creating an app
 
-### Built-in components
+## Built-in components
 
 Apps are pieces or components of a bigger django project
 
